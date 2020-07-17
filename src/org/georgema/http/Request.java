@@ -1,7 +1,7 @@
-package org.demo.http;
+package org.georgema.http;
 
 import cn.hutool.core.util.StrUtil;
-import org.demo.util.UtilBrowser;
+import org.georgema.util.UtilBrowser;
 
 import java.io.IOException;
 import java.io.InputStream;

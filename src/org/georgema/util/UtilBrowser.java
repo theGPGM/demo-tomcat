@@ -1,4 +1,4 @@
-package org.demo.util;
+package org.georgema.util;
 
 import java.io.*;
 import java.net.InetSocketAddress;
@@ -14,14 +14,6 @@ import java.util.Set;
  */
 public class UtilBrowser {
     public static final int buffSize = 1024;
-
-    public static void main(String[] args) throws Exception {
-        String url = "http://localhost:10001/index.html";
-        String contentString= getContentString(url,false);
-        System.out.println(contentString);
-        String httpString= getHttpString(url,false);
-        System.out.println(httpString);
-    }
 
     public static byte[] getContentBytes(String url) {
         return getContentBytes(url, false);

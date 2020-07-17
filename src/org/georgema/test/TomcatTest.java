@@ -1,9 +1,9 @@
-package org.demo.test;
+package org.georgema.test;
 
 import cn.hutool.core.util.NetUtil;
 import cn.hutool.core.util.StrUtil;
 import junit.framework.Assert;
-import org.demo.util.UtilBrowser;
+import org.georgema.util.UtilBrowser;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -26,7 +26,7 @@ public class TomcatTest {
 
     @Test
     public void test(){
-        String html = getResponseHtml("/");
+        String html = getResponseHtml("/hello.html");
         Assert.assertEquals("Thanks for request", html);
     }
 

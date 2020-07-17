@@ -1,5 +1,5 @@
-# Demo-Tomcat
-实现了 tomcat 大部分功能的简化版 tomcat
+# demo tomcat
+实现了 tomcat 大部分功能的简化版(学习用)
 
 #### 开发模块：
 * 类加载器

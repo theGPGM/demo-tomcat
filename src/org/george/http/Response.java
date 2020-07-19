@@ -1,4 +1,4 @@
-package org.georgema.http;
+package org.george.http;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;

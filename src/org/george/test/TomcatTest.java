@@ -1,9 +1,9 @@
-package org.georgema.test;
+package org.george.test;
 
 import cn.hutool.core.util.NetUtil;
 import cn.hutool.core.util.StrUtil;
 import junit.framework.Assert;
-import org.georgema.util.UtilBrowser;
+import org.george.util.UtilBrowser;
 import org.junit.BeforeClass;
 import org.junit.Test;
 

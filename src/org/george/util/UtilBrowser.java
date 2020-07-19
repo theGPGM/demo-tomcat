@@ -1,4 +1,4 @@
-package org.georgema.util;
+package org.george.util;
 
 import java.io.*;
 import java.net.InetSocketAddress;

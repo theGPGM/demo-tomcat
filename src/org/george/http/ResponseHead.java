@@ -1,15 +1,15 @@
-package org.georgema.http;
+package org.george.http;
 
 /**
  * 封装响应头消息的类
  */
-public enum ConstantResponseHead {
+public enum ResponseHead {
     RESPONSE_STATUS_200("HTTP/1.1 200 OK\r\nContent-Type: {}\r\n\r\n")
     ;
 
     private String response;
 
-    private ConstantResponseHead(String response){
+    private ResponseHead(String response){
         this.response = response;
     }
 

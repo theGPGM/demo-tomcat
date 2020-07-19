@@ -4,6 +4,8 @@ import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.core.util.NetUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.log.LogFactory;
+import cn.hutool.system.SystemUtil;
 import org.george.http.Constant;
 import org.george.http.ResponseHead;
 import org.george.http.Request;
@@ -14,18 +16,25 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.Date;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * 最简单的 web 服务器
  */
 public class Bootstrap {
     public static final int port = 10001;
+    private static final String serverVersion = "0.01";
+
 
     public static void main(String[] args) {
         try {
-            if (!NetUtil.isUsableLocalPort(port)) {
-                throw new IllegalArgumentException(port + "端口被占用");
-            }
+            startLog();
+//            if (!NetUtil.isUsableLocalPort(port)) {
+//                throw new IllegalArgumentException(port + "端口被占用");
+//            }
             ServerSocket serverSocket = new ServerSocket(port);
             // 接收客户端请求
             while (true) {
@@ -56,6 +65,7 @@ public class Bootstrap {
                 send(socket, response);
             }
         } catch (IOException e) {
+            LogFactory.get().error(e);
             e.printStackTrace();
         }
     }
@@ -79,5 +89,21 @@ public class Bootstrap {
         }finally {
             os.close();
         }
+    }
+
+    public static void startLog() {
+        Map<String,String> info = new LinkedHashMap<>();
+        info.put("Server version", "DemoTomcat/" + serverVersion);
+        info.put("Server built", "\t"+new Date().toString());
+        info.put("Server number", "\t"+serverVersion);
+        info.put("OS name", "\t\t"+SystemUtil.get("os.name"));
+        info.put("OS version", "\t"+SystemUtil.get("os.version"));
+        info.put("Architecture", "\t"+SystemUtil.get("os.arch"));
+        info.put("JVM version", "\t"+SystemUtil.get("java.runtime.version"));
+        info.put("JVM vendor", "\t"+SystemUtil.get("java.vm.specification.vendor"));
+
+        Set<String> keys = info.keySet();
+        for(String key : keys)
+            LogFactory.get().info(key + ":\t\t" + info.get(key));
     }
 }

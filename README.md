@@ -1,5 +1,5 @@
 # demo tomcat
-实现了 tomcat 大部分功能的简化版(学习用)
+实现了 tomcat 大部分功能的简化版
 
 #### 模块开发：
 * HTTP 消息对象

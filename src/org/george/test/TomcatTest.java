@@ -26,7 +26,7 @@ public class TomcatTest {
 
     @Test
     public void test(){
-        String html = getResponseHtml("/hello.html");
+        String html = getResponseHtml("/app/index.html");
         Assert.assertEquals("Thanks for request", html);
     }
 

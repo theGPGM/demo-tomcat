@@ -1,6 +1,8 @@
 package org.george.http;
 
 import cn.hutool.core.util.StrUtil;
+import org.apache.tomcat.util.bcel.Const;
+import org.george.tomcat.Bootstrap;
 import org.george.util.UtilBrowser;
 
 import java.io.IOException;
@@ -10,13 +12,24 @@ import java.net.Socket;
 public class Request {
 
     private String request;
+
     private String uri;
+
     private Socket socket;
+
+    private Context context;
+
+    /**
+     * 将客户端发来的 socket 封装成 Request 对象
+     * @param socket
+     * @throws IOException
+     */
     public Request(Socket socket) throws IOException {
         this.socket = socket;
         parseHttpRequest();
         if(StrUtil.isEmpty(request))
             return;
+        parseContextPath();
         parseUri();
     }
 
@@ -27,7 +40,7 @@ public class Request {
     private void parseHttpRequest() throws IOException {
         InputStream is = this.socket.getInputStream();
         byte[] bytes = UtilBrowser.readBytes(is);
-        request = new String(bytes, "utf-8");
+        request = new String(bytes, "UTF-8");
     }
 
     /**
@@ -46,11 +59,38 @@ public class Request {
         uri = temp;
     }
 
+    /**
+     * 解析请求所属的应用
+     * @return
+     */
+    public void parseContextPath(){
+        String contextPath = StrUtil.subBetween(request, "/", "/");
+        if(contextPath == null){
+            contextPath = "/";
+        }else{
+            contextPath = "/" + contextPath;
+        }
+
+        Context context = Bootstrap.getContext(contextPath);
+        if(context == null){
+            context = Bootstrap.getContext(Constant.Context.ROOT_CONTEXT_PATH);
+        }
+        setContext(context);
+    }
+
     public String getUri() {
         return uri;
     }
 
     public String getRequest(){
         return request;
+    }
+
+    public Context getContext() {
+        return context;
+    }
+
+    public void setContext(Context context) {
+        this.context = context;
     }
 }

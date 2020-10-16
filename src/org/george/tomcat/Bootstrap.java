@@ -2,67 +2,81 @@ package org.george.tomcat;
 
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.ArrayUtil;
-import cn.hutool.core.util.NetUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.log.LogFactory;
 import cn.hutool.system.SystemUtil;
-import org.george.http.Constant;
-import org.george.http.ResponseHead;
-import org.george.http.Request;
-import org.george.http.Response;
+import org.apache.tomcat.util.bcel.Const;
+import org.george.http.*;
+import org.george.util.ThreadPoolUtil;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.Date;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * 最简单的 web 服务器
  */
 public class Bootstrap {
+
     public static final int port = 10001;
+
     private static final String serverVersion = "0.01";
 
+    /**
+     * 存放路径与应用映射的集合
+     */
+    private static Map<String, Context> contextMap = new HashMap<>();
 
+    /**
+     * 程序运行的主要逻辑：在这里接收来自客户端传输的 socket，解析其中的请求内容，并返回相应的响应结果
+     * @param args
+     */
     public static void main(String[] args) {
         try {
+
             startLog();
-//            if (!NetUtil.isUsableLocalPort(port)) {
-//                throw new IllegalArgumentException(port + "端口被占用");
-//            }
+
+            scanContext();
+
             ServerSocket serverSocket = new ServerSocket(port);
             // 接收客户端请求
             while (true) {
                 Socket socket = serverSocket.accept();
-                //封装客户端请求
-                Request request = new Request(socket);
-                //输出信息
-                System.out.println("浏览器的输入信息： \r\n" + request.getRequest());
-                System.out.println("uri:" + request.getUri());
-                //响应客户端请求
-                Response response = new Response();
-                String uri = request.getUri();
-                //请求不符合规范
-                if(uri == null) continue;
-                    if("/".equals(uri)){
-                        String html = "Hello DemoTomcat!";
-                        response.getWriter().println(html);
-                    }else{
-                        String fileName = StrUtil.removePrefix(uri, "/");
-                        File file = FileUtil.file(Constant.rootFolder, fileName);
-                        if(file.exists()){
-                            String content = FileUtil.readUtf8String(file);
-                            response.getWriter().println(content);
-                        }else{
-                            response.getWriter().println("404 File Not Found");
+                Runnable runnable = new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            Request request = new Request(socket);
+                            Response response = new Response();
+                            // 获取请求的应用信息封装类：应用的地址信息
+                            Context context = request.getContext();
+                            // 获取请求的地址
+                            String uri = request.getUri();
+                            if(uri == null) return;
+                            if("/".equals(uri)){
+                                response.getWriter().println("welcome to mini tomcat!");
+                            }else{
+                                String[] split = uri.split("/");
+                                String filename = split[split.length - 1];
+                                File file = FileUtil.file(context.getDocPath(), filename);
+                                if(file.exists()){
+                                    String content = FileUtil.readUtf8String(file);
+                                    response.getWriter().println(content);
+                                }else{
+                                    response.getWriter().println(Constant.ResponseMessage.FILE_NO_FOUND);
+                                }
+                            }
+                            send(socket, response);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                            return;
                         }
-                }
-                send(socket, response);
+                    }
+                };
+                ThreadPoolUtil.run(runnable);
             }
         } catch (IOException e) {
             LogFactory.get().error(e);
@@ -70,6 +84,12 @@ public class Bootstrap {
         }
     }
 
+    /**
+     * 将封装在 response 中的信息发送出去
+     * @param socket
+     * @param response
+     * @throws IOException
+     */
     private static void send(Socket socket, Response response) throws IOException {
         OutputStream os = socket.getOutputStream();
         try{
@@ -80,10 +100,13 @@ public class Bootstrap {
             byte[] head = responseHead.getBytes();
             //获取响应体
             byte[] content = response.getBody();
+
+            // 将响应头和响应体结合在一起
             byte[] responseBytes = new byte[head.length + content.length];
             ArrayUtil.copy(head,0, responseBytes, 0, head.length);
             ArrayUtil.copy(content, 0, responseBytes, head.length, content.length);
-            //传输
+
+            //传输到对应的设备中
             os.write(responseBytes);
             os.flush();
         }finally {
@@ -91,9 +114,29 @@ public class Bootstrap {
         }
     }
 
+    private static void scanContext(){
+        File[] folders = Constant.Folder.WEBAPPS_FOLDER.listFiles();
+        for(File file : folders){
+            if(!file.isDirectory()) continue;
+            else loadContext(file);
+        }
+    }
+
+    private static void loadContext(File file){
+        String path = file.getName();
+        if("root".equals(path)){
+            path = "/";
+        }else{
+            path = "/" + path;
+        }
+        String docPath = file.getAbsolutePath();
+        Context context = new Context(path, docPath);
+        contextMap.put(context.getPath(), context);
+    }
+
     public static void startLog() {
         Map<String,String> info = new LinkedHashMap<>();
-        info.put("Server version", "DemoTomcat/" + serverVersion);
+        info.put("Server version", "Mini Tomcat/" + serverVersion);
         info.put("Server built", "\t"+new Date().toString());
         info.put("Server number", "\t"+serverVersion);
         info.put("OS name", "\t\t"+SystemUtil.get("os.name"));
@@ -105,5 +148,9 @@ public class Bootstrap {
         Set<String> keys = info.keySet();
         for(String key : keys)
             LogFactory.get().info(key + ":\t\t" + info.get(key));
+    }
+
+    public static Context getContext(String path){
+        return contextMap.get(path);
     }
 }

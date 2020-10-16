@@ -5,8 +5,9 @@ import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.log.LogFactory;
 import cn.hutool.system.SystemUtil;
-import org.apache.tomcat.util.bcel.Const;
+import org.george.exception.ContextException;
 import org.george.http.*;
+import org.george.util.ServerXMLUtil;
 import org.george.util.ThreadPoolUtil;
 
 import java.io.File;
@@ -39,7 +40,7 @@ public class Bootstrap {
 
             startLog();
 
-            scanContext();
+            loadContexts();
 
             ServerSocket serverSocket = new ServerSocket(port);
             // 接收客户端请求
@@ -118,11 +119,11 @@ public class Bootstrap {
         File[] folders = Constant.Folder.WEBAPPS_FOLDER.listFiles();
         for(File file : folders){
             if(!file.isDirectory()) continue;
-            else loadContext(file);
+            else wrapContext(file);
         }
     }
 
-    private static void loadContext(File file){
+    public static void wrapContext(File file){
         String path = file.getName();
         if("root".equals(path)){
             path = "/";
@@ -131,7 +132,7 @@ public class Bootstrap {
         }
         String docPath = file.getAbsolutePath();
         Context context = new Context(path, docPath);
-        contextMap.put(context.getPath(), context);
+        addContext(context);
     }
 
     public static void startLog() {
@@ -152,5 +153,19 @@ public class Bootstrap {
 
     public static Context getContext(String path){
         return contextMap.get(path);
+    }
+
+    public static void addContext(Context context){
+        if(contextMap.get(context.getPath()) != null){
+            throw new ContextException(StrUtil.format(Constant.ContextExceptionMessage.CONTEXT_ALREADY_EXISTS, context.getPath()));
+        }
+        contextMap.put(context.getPath(), context);
+    }
+
+    public static void loadContexts(){
+        // 扫描项目包下的 webapps 的所有应用
+        scanContext();
+        // 扫描 xml 中的应用
+        ServerXMLUtil.loadXmlContexts();
     }
 }

@@ -31,4 +31,17 @@ public class Constant {
     public static class ResponseMessage {
         public static final String FILE_NO_FOUND = "404, the file not found!";
     }
+
+    public static class XMLParseExceptionMessage{
+        public static final String XML_ATTR_ERROR = "can't find the path or docPath, check again";
+
+        public static final String CONTEXT_PATH_FORMAT_ERROR = "this context path format is illegal, please check, must like this: \\app";
+
+        public static final String CONTEXT_DOC_NOT_EXISTS = "this context doc path can't found, please check";
+    }
+
+    public static class ContextExceptionMessage{
+
+        public static final String CONTEXT_ALREADY_EXISTS = "this context {} already exists, please check";
+    }
 }

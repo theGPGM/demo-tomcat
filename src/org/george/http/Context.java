@@ -41,4 +41,12 @@ public class Context {
     public void setDocPath(String docPath) {
         this.docPath = docPath;
     }
+
+    @Override
+    public String toString() {
+        return "Context{" +
+                "path='" + path + '\'' +
+                ", docPath='" + docPath + '\'' +
+                '}';
+    }
 }

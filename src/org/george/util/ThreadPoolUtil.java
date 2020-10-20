@@ -11,8 +11,12 @@ import java.util.concurrent.TimeUnit;
  */
 public class ThreadPoolUtil {
 
-    private static ThreadPoolExecutor executor = new ThreadPoolExecutor(Constant.ThreadPoolParameter.MIN_POOL_SIZE, Constant.ThreadPoolParameter.MAX_POOL_SIZE,
-            Constant.ThreadPoolParameter.MAX_WAITING_TIME, TimeUnit.SECONDS, new LinkedBlockingDeque<Runnable>(Constant.ThreadPoolParameter.BLOCKING_QUEUE_CAPACITY));
+    static ThreadPoolExecutor executor = new ThreadPoolExecutor(
+            Constant.ThreadPoolParameter.MIN_POOL_SIZE,
+            Constant.ThreadPoolParameter.MAX_POOL_SIZE,
+            Constant.ThreadPoolParameter.MAX_WAITING_TIME,
+            TimeUnit.SECONDS,
+            new LinkedBlockingDeque<Runnable>(Constant.ThreadPoolParameter.BLOCKING_QUEUE_CAPACITY));
 
     public static void run(Runnable runnable){
         executor.execute(runnable);

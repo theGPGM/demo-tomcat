@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Server>
+
     <!--使用配置文件配置应用路径-->
-    <Context path="/app" docPath="C:\Users\ThinkPad\Desktop\app" />
+    <Engine defaultHost="localhost">
+        <Host name="localhost">
+            <Context path="/app" docPath="C:\Users\ThinkPad\Desktop\app" />
+        </Host>
+    </Engine>
 </Server>

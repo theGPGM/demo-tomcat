@@ -26,10 +26,6 @@ public class Bootstrap {
 
     private static final String serverVersion = "0.01";
 
-    /**
-     * 存放路径与应用映射的集合
-     */
-    private static Map<String, Context> contextMap = new HashMap<>();
 
     /**
      * 程序运行的主要逻辑：在这里接收来自客户端传输的 socket，解析其中的请求内容，并返回相应的响应结果
@@ -37,12 +33,12 @@ public class Bootstrap {
      */
     public static void main(String[] args) {
         try {
-
             startLog();
 
-            loadContexts();
+            Engine engine = new Engine();
 
             ServerSocket serverSocket = new ServerSocket(port);
+
             // 接收客户端请求
             while (true) {
                 Socket socket = serverSocket.accept();
@@ -50,23 +46,23 @@ public class Bootstrap {
                     @Override
                     public void run() {
                         try {
-                            Request request = new Request(socket);
+                            Request request = new Request(socket, engine);
                             Response response = new Response();
                             // 获取请求的应用信息封装类：应用的地址信息
                             Context context = request.getContext();
                             // 获取请求的地址
                             String uri = request.getUri();
-                            if(uri == null) return;
-                            if("/".equals(uri)){
+                            if (uri == null) return;
+                            if ("/".equals(uri)) {
                                 response.getWriter().println("welcome to mini tomcat!");
-                            }else{
+                            } else {
                                 String[] split = uri.split("/");
                                 String filename = split[split.length - 1];
                                 File file = FileUtil.file(context.getDocPath(), filename);
-                                if(file.exists()){
+                                if (file.exists()) {
                                     String content = FileUtil.readUtf8String(file);
                                     response.getWriter().println(content);
-                                }else{
+                                } else {
                                     response.getWriter().println(Constant.ResponseMessage.FILE_NO_FOUND);
                                 }
                             }
@@ -87,13 +83,14 @@ public class Bootstrap {
 
     /**
      * 将封装在 response 中的信息发送出去
+     *
      * @param socket
      * @param response
      * @throws IOException
      */
     private static void send(Socket socket, Response response) throws IOException {
         OutputStream os = socket.getOutputStream();
-        try{
+        try {
             //设置响应头
             String contentType = response.getContentType();
             String responseHead = ResponseHead.RESPONSE_STATUS_200.getResponse();
@@ -104,68 +101,30 @@ public class Bootstrap {
 
             // 将响应头和响应体结合在一起
             byte[] responseBytes = new byte[head.length + content.length];
-            ArrayUtil.copy(head,0, responseBytes, 0, head.length);
+            ArrayUtil.copy(head, 0, responseBytes, 0, head.length);
             ArrayUtil.copy(content, 0, responseBytes, head.length, content.length);
 
             //传输到对应的设备中
             os.write(responseBytes);
             os.flush();
-        }finally {
+        } finally {
             os.close();
         }
     }
 
-    private static void scanContext(){
-        File[] folders = Constant.Folder.WEBAPPS_FOLDER.listFiles();
-        for(File file : folders){
-            if(!file.isDirectory()) continue;
-            else wrapContext(file);
-        }
-    }
-
-    public static void wrapContext(File file){
-        String path = file.getName();
-        if("root".equals(path)){
-            path = "/";
-        }else{
-            path = "/" + path;
-        }
-        String docPath = file.getAbsolutePath();
-        Context context = new Context(path, docPath);
-        addContext(context);
-    }
-
     public static void startLog() {
-        Map<String,String> info = new LinkedHashMap<>();
+        Map<String, String> info = new LinkedHashMap<>();
         info.put("Server version", "Mini Tomcat/" + serverVersion);
-        info.put("Server built", "\t"+new Date().toString());
-        info.put("Server number", "\t"+serverVersion);
-        info.put("OS name", "\t\t"+SystemUtil.get("os.name"));
-        info.put("OS version", "\t"+SystemUtil.get("os.version"));
-        info.put("Architecture", "\t"+SystemUtil.get("os.arch"));
-        info.put("JVM version", "\t"+SystemUtil.get("java.runtime.version"));
-        info.put("JVM vendor", "\t"+SystemUtil.get("java.vm.specification.vendor"));
+        info.put("Server built", "\t" + new Date().toString());
+        info.put("Server number", "\t" + serverVersion);
+        info.put("OS name", "\t\t" + SystemUtil.get("os.name"));
+        info.put("OS version", "\t" + SystemUtil.get("os.version"));
+        info.put("Architecture", "\t" + SystemUtil.get("os.arch"));
+        info.put("JVM version", "\t" + SystemUtil.get("java.runtime.version"));
+        info.put("JVM vendor", "\t" + SystemUtil.get("java.vm.specification.vendor"));
 
         Set<String> keys = info.keySet();
-        for(String key : keys)
+        for (String key : keys)
             LogFactory.get().info(key + ":\t\t" + info.get(key));
-    }
-
-    public static Context getContext(String path){
-        return contextMap.get(path);
-    }
-
-    public static void addContext(Context context){
-        if(contextMap.get(context.getPath()) != null){
-            throw new ContextException(StrUtil.format(Constant.ContextExceptionMessage.CONTEXT_ALREADY_EXISTS, context.getPath()));
-        }
-        contextMap.put(context.getPath(), context);
-    }
-
-    public static void loadContexts(){
-        // 扫描项目包下的 webapps 的所有应用
-        scanContext();
-        // 扫描 xml 中的应用
-        ServerXMLUtil.loadXmlContexts();
     }
 }

@@ -19,13 +19,16 @@ public class Request {
 
     private Context context;
 
+    private Engine engine;
+
     /**
      * 将客户端发来的 socket 封装成 Request 对象
      * @param socket
      * @throws IOException
      */
-    public Request(Socket socket) throws IOException {
+    public Request(Socket socket, Engine engine) throws IOException {
         this.socket = socket;
+        this.engine = engine;
         parseHttpRequest();
         if(StrUtil.isEmpty(request))
             return;
@@ -71,9 +74,9 @@ public class Request {
             contextPath = "/" + contextPath;
         }
 
-        Context context = Bootstrap.getContext(contextPath);
+        Context context = engine.defaultHost().getContext(contextPath);
         if(context == null){
-            context = Bootstrap.getContext(Constant.Context.ROOT_CONTEXT_PATH);
+            context = engine.defaultHost().getContext(Constant.Context.ROOT_CONTEXT_PATH);
         }
         setContext(context);
     }
